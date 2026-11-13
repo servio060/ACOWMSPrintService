@@ -1,9 +1,10 @@
 using System.Diagnostics;
+using System.Drawing.Printing;
+using System.Reflection;
 namespace ACOWMSPrintService;
 
 public class Worker(ILogger<Worker> logger) : BackgroundService
-{
-    
+{   
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
@@ -15,9 +16,14 @@ public class Worker(ILogger<Worker> logger) : BackgroundService
 
             try
             {
+                //foreach (string printer in PrinterSettings.InstalledPrinters)
+                //{
+                //    Console.WriteLine(printer);
+                //}
                 WebAPI api = new WebAPI();
                 var tasks = await api.GetTasks() ?? [];
 
+                logger.LogInformation("Documentos encontrados: {}", tasks.Count());
                 foreach (var task in tasks)
                 {
                     await ProcessTask(api, task, stoppingToken);
@@ -33,7 +39,7 @@ public class Worker(ILogger<Worker> logger) : BackgroundService
                 logger.LogError(ex, "Error while processing print tasks");
             }
 
-            await Task.Delay(100000, stoppingToken);
+            await Task.Delay(10000, stoppingToken);
         }
     }
 
